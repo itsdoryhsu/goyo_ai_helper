@@ -1,0 +1,16 @@
+invoice_processor/
+├── services/
+│   ├── drive_service.py         # Google Drive 相關操作
+│   ├── ocr_service.py          # OCR 處理服務
+│   └── spreadsheet_service.py  # Google Sheets 操作
+├── utils/
+│   └── file_utils.py           # 檔案處理工具
+├── config/
+│   └── settings.py             # 設定檔
+└── main.py                     # 主程式
+
+
+google_secret.json生成方式：
+1.google cloud啟用google drive api, google sheet api 服務
+2.進到服務帳戶，右邊有三個點點（動作），點選管理金鑰
+3.建立新的金鑰（json)->會自動下載到電腦，再看要擺哪，然後路徑貼到setting的參數（CREDENTIALS_PATH）

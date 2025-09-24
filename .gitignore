@@ -1,0 +1,74 @@
+# 環境變數
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 虛擬環境
+venv/
+.venv/
+ENV/
+env/
+virtualenv/
+
+# 系統檔案
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 資料檔案
+data/documents/
+data/youtube/
+data/vectorstore/
+
+# Streamlit 密鑰
+.streamlit/secrets.toml
+
+# 配置檔案和敏感資料
+config/
+*.log
+logs/
+temp_*
+*.sqlite
+*.sqlite3
+
+# 環境變數和設定
+.env
+*.env
+
+# Archive 資料夾
+_archive/
+archive/
+
+# Streamlit 相關
+.streamlit/
+streamlit_*.py
+
+# AWS 相關
+.aws/
+aws-*
+*.pem
+*.key
+credentials
+config
