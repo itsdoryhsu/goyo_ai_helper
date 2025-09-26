@@ -23,6 +23,7 @@ fi
 # 停止舊的程序
 echo "正在停止任何可能在運行的舊程序..."
 pkill -f "line_bot_v4_simple_client.py"
+pkill -f "line_bot_v5_clean.py"
 pkill -f "ngrok http $LINE_BOT_PORT"
 
 # 啟動 ngrok 先 (背景執行)
@@ -49,11 +50,11 @@ fi
 # 設定環境變數給 LINE Bot 使用
 export GOOGLE_AUTH_BASE_URL="$PUBLIC_URL"
 
-# 啟動 Line Bot 伺服器 (背景執行)
-echo "正在背景啟動 Line Bot 伺服器..."
-.venv/bin/python clients/line_bot/line_bot_v4_simple_client.py > logs/line_bot_simple_client.log 2>&1 &
+# 啟動 Line Bot 伺服器 v5 (背景執行)
+echo "正在背景啟動 Line Bot v5 伺服器 (重構架構)..."
+.venv_test/bin/python clients/line_bot/line_bot_v5_clean.py > logs/line_bot_v5_clean.log 2>&1 &
 BOT_PID=$!
-echo "Line Bot 已啟動，PID: $BOT_PID"
+echo "Line Bot v5 已啟動，PID: $BOT_PID (Linus式乾淨架構)"
 
 
 # 自動更新 Line Webhook URL
@@ -76,14 +77,20 @@ fi
 
 # 顯示重要資訊
 echo "========================================================================"
-echo "✅ 系統已啟動！"
+echo "✅ LINE Bot v5 系統已啟動！(Linus式重構架構)"
 echo ""
-echo "Line Bot 已在以下公開網址上運行："
+echo "🚀 新架構特色："
+echo "   • 900行 → 180行核心代碼"
+echo "   • 模組化設計，統一接口"
+echo "   • 狀態機管理，無全局狀態"
+echo ""
+echo "Line Bot v5 已在以下公開網址上運行："
 echo "$PUBLIC_URL/callback"
 echo ""
-echo "服務正在背景運行中。日誌檔案位於 /logs 資料夾。"
+echo "📋 健康檢查端點: $PUBLIC_URL/health"
+echo "📝 日誌檔案: /logs/line_bot_v5_clean.log"
 echo "========================================================================"
 echo ""
 echo "若要停止所有服務，請執行以下命令："
-echo "pkill -f 'line_bot_v4_simple_client.py' && pkill -f 'ngrok http $LINE_BOT_PORT'"
+echo "pkill -f 'line_bot_v5_clean.py' && pkill -f 'ngrok http $LINE_BOT_PORT'"
 echo ""

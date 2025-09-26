@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-財務稅法顧問 LINE Bot 包
+財務稅法顧問 LINE Bot 包 - v5 重構版
 """
 
-from .line_bot_v3 import app
-
-__all__ = ['app']
+# v5 重構版不再需要全局導入
+__version__ = "5.0.0"
+__all__ = []

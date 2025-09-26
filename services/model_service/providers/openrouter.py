@@ -23,7 +23,7 @@ class OpenRouterProvider(ModelProvider):
         self,
         api_key: str,
         base_url: str = "https://openrouter.ai/api/v1",
-        app_name: str = "財務助手",
+        app_name: str = "Finance Helper",
         site_url: str = "https://your-app.com",
         timeout: float = 30.0
     ):

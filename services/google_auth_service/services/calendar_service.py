@@ -116,8 +116,15 @@ class CalendarService:
             logger.error(f"Failed to get today's events for {line_user_id}: {e}")
             return []
 
-    def get_upcoming_events(self, line_user_id: str, limit: int = 10) -> List[Dict]:
-        """取得即將到來的事件（從選擇的行事曆）"""
+    def get_upcoming_events(self, line_user_id: str, limit: int = 10, days_ahead: int = 7) -> List[Dict]:
+        """
+        取得即將到來的事件（從選擇的行事曆）
+
+        Args:
+            line_user_id: LINE 用戶 ID
+            limit: 最多回傳的事件數量
+            days_ahead: 取得未來幾天的事件（預設7天）
+        """
         service = self.oauth_service.get_calendar_service(line_user_id)
         if not service:
             return []
@@ -128,7 +135,11 @@ class CalendarService:
             selected_calendars = ['primary']  # 預設使用主要行事曆
 
         try:
-            now = datetime.utcnow().isoformat() + 'Z'
+            # 設定時間範圍：從現在開始到未來指定天數
+            now = datetime.utcnow()
+            time_min = now.isoformat() + 'Z'
+            time_max = (now + timedelta(days=days_ahead)).isoformat() + 'Z'
+
             all_events = []
 
             # 從每個選擇的行事曆讀取事件
@@ -136,8 +147,9 @@ class CalendarService:
                 try:
                     events_result = service.events().list(
                         calendarId=calendar_id,
-                        timeMin=now,
-                        maxResults=limit,
+                        timeMin=time_min,
+                        timeMax=time_max,  # 新增時間上限
+                        maxResults=50,  # 增加最大數量以確保在時間範圍內取得足夠事件
                         singleEvents=True,
                         orderBy='startTime'
                     ).execute()
