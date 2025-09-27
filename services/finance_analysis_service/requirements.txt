@@ -1,0 +1,26 @@
+# Finance Analysis Service - 財務分析服務
+# 功能：Google Sheets 數據分析 + AI 財務洞察
+
+# 數據處理核心
+pandas>=2.1.0
+
+# Google 服務集成
+gspread>=5.12.0
+google-auth>=2.23.0
+
+# 環境變數管理
+python-dotenv>=1.0.0
+
+# 依賴的服務
+# - model_service: 統一 LLM 接口（已遷移使用）
+
+# 標準庫依賴（無需安裝）:
+# - typing: 類型提示
+# - logging: 日誌記錄
+# - time: 性能測量
+# - os: 環境變數
+# - enum: 枚舉類型（QuestionType）
+# - json: 數據序列化
+
+# 注意：不再需要 langchain 相關依賴
+# 原因：已完全遷移到統一 model_service 架構

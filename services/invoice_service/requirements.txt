@@ -1,0 +1,32 @@
+# Invoice Service - 發票處理服務
+# 功能：PDF/圖片 OCR + Google Sheets 存儲
+
+# PDF 處理
+PyMuPDF>=1.23.0
+
+# 數據處理
+pandas>=2.1.0
+
+# Google 服務集成
+gspread>=5.12.0
+google-api-python-client>=2.108.0
+google-auth>=2.23.0
+
+# 環境變數管理
+python-dotenv>=1.0.0
+
+# 數據驗證
+pydantic>=2.5.0
+
+# 依賴的服務
+# - model_service: 統一 LLM 接口（OCR + 類別判斷）
+
+# 標準庫依賴（無需安裝）:
+# - typing: 類型提示
+# - base64: 圖片編碼
+# - json: JSON 處理
+# - os: 文件操作
+# - sys: 系統路徑
+
+# 注意：不再需要特定 AI 庫（openai, google-generativeai）
+# 原因：已完全遷移到統一 model_service 架構

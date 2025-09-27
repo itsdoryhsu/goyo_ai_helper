@@ -3,7 +3,7 @@ import asyncio # 導入 asyncio
 from .services.drive_service import DriveService
 from .services.ocr_service import OCRService
 from .services.spreadsheet_service import SpreadsheetService
-from services.model_service.manager import model_manager # 導入 model_manager 實例
+from services.model_service import create_model_service # 導入新的 model_service
 from .utils.file_utils import get_media_type, generate_drive_link
 
 class InvoiceProcessor:
@@ -11,7 +11,7 @@ class InvoiceProcessor:
         self.drive_service = DriveService()
         self.ocr_service = OCRService()
         self.spreadsheet_service = SpreadsheetService()
-        self.model_manager = model_manager # 使用 model_manager 實例
+        self.model_service = create_model_service() # 使用新的 model_service
         self.category_keywords = self.spreadsheet_service.category_keywords # 取得類別關鍵字
 
     async def determine_category(self, invoice_description: str) -> str:
@@ -35,12 +35,12 @@ class InvoiceProcessor:
         )
         
         try:
-            # 這裡假設 model_manager.send_message 是一個非同步方法
-            response = await self.model_manager.send_message(
-                prompt=prompt,
-                model_profile="default_text_model" # 假設有一個預設的文字模型配置
-            )
-            ai_category = response.strip()
+            # 使用新的 model_service 架構，適合處理類別判斷任務
+            messages = [{"role": "user", "content": prompt}]
+            response = await self.model_service.qa_completion(messages)
+
+            # 從 ModelResponse 對象中提取內容
+            ai_category = response.content.strip() if hasattr(response, 'content') else str(response).strip()
             if ai_category in self.category_keywords:
                 print(f"✅ AI 輔助判斷成功，類別為: {ai_category}")
                 return ai_category
@@ -137,25 +137,30 @@ if __name__ == "__main__":
         
         try:
             processor = InvoiceProcessor()
-            with open(file_path, 'rb') as f:
-                file_data = f.read()
-            
-            # 從副檔名判斷媒體類型
-            file_ext = os.path.splitext(file_path)[1].lower()
-            if file_ext == '.pdf':
-                media_type = 'application/pdf'
-            elif file_ext in ['.jpg', '.jpeg', '.png']:
-                media_type = f'image/{file_ext[1:]}'
-            else:
-                raise ValueError(f"不支援的檔案類型: {file_ext}")
+            try:
+                with open(file_path, 'rb') as f:
+                    file_data = f.read()
 
-            result, usage = await processor.process_invoice_from_data(file_data, media_type)
-            
-            # 以 JSON 格式打印結果，方便 mcp_server.py 捕獲和解析
-            print("---辨識結果---")
-            print(json.dumps(result, ensure_ascii=False, indent=2))
-            print("---使用量---")
-            print(json.dumps(usage, ensure_ascii=False, indent=2))
+                # 從副檔名判斷媒體類型
+                file_ext = os.path.splitext(file_path)[1].lower()
+                if file_ext == '.pdf':
+                    media_type = 'application/pdf'
+                elif file_ext in ['.jpg', '.jpeg', '.png']:
+                    media_type = f'image/{file_ext[1:]}'
+                else:
+                    raise ValueError(f"不支援的檔案類型: {file_ext}")
+
+                result, usage = await processor.process_invoice_from_data(file_data, media_type)
+
+                # 以 JSON 格式打印結果，方便 mcp_server.py 捕獲和解析
+                print("---辨識結果---")
+                print(json.dumps(result, ensure_ascii=False, indent=2))
+                print("---使用量---")
+                print(json.dumps(usage, ensure_ascii=False, indent=2))
+
+            finally:
+                # 清理 model_service 資源
+                await processor.model_service.close()
 
 
         except FileNotFoundError:

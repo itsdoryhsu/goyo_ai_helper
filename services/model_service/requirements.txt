@@ -1,0 +1,23 @@
+# Model Service - 統一 AI 服務層
+# 核心：純淨、無依賴地獄的 AI 提供商抽象層
+
+# HTTP 客戶端 - 所有 AI API 調用的基礎
+httpx>=0.25.0
+
+# 環境變數管理 - 配置加載
+python-dotenv>=1.0.0
+
+# 數據驗證 - 保證 API 回應格式正確性
+pydantic>=2.5.0
+
+# 標準庫依賴（無需安裝）:
+# - typing: 類型提示
+# - dataclasses: 數據模型
+# - enum: 枚舉類型
+# - json: JSON 處理
+# - logging: 日誌記錄
+# - os: 環境變數
+# - abc: 抽象基類
+
+# 注意：故意不包含任何特定 AI 庫（如 openai, google-generativeai）
+# 原因：使用純 HTTP API 調用，避免 SDK 版本地獄和不必要的依賴

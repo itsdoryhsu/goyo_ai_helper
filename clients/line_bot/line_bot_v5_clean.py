@@ -48,7 +48,8 @@ from clients.line_bot.services.line_client import LineClient
 from clients.line_bot.handlers.base_handler import HandlerResponse
 
 # --- 設定與初始化 ---
-load_dotenv()
+# 載入環境變數 - 強制覆蓋系統環境變數
+load_dotenv(override=True)
 
 # 設定日誌
 LOGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'logs')
@@ -121,6 +122,8 @@ class LineBotController:
                 handler = self.service_registry.get_handler(session.current_handler)
 
                 if handler:
+                    # 預先發送loading動畫
+                    await self.line_client.send_loading_animation(user_id)
                     response = await handler.handle_message(user_id, text)
                     await self._send_handler_response(event.reply_token, user_id, response)
                     return
@@ -213,11 +216,7 @@ class LineBotController:
 
     async def _send_handler_response(self, reply_token: str, user_id: str, response: HandlerResponse):
         """發送處理器回應 - 統一接口"""
-        if response.needs_loading:
-            await self.line_client.send_loading_animation(user_id)
-            # 等待一秒確保loading動畫顯示
-            import asyncio
-            await asyncio.sleep(1)
+        # loading動畫現在在handler調用前發送，這裡不需要重複
 
         # 處理確認卡片
         if response.text == "confirm_template" and response.template_data:

@@ -18,12 +18,19 @@ class QAHandler(BaseHandler):
     def _initialize_service(self):
         """初始化QA服務"""
         try:
-            from services.qa_service.qa_client import process_qa_query
+            # 優先使用新的統一LLM架構
+            from services.qa_service.qa_client_v2 import process_qa_query
             self.process_qa_query = process_qa_query
-            logger.info("QA服務初始化成功")
-        except ImportError as e:
-            logger.error(f"QA服務初始化失敗: {e}")
-            self.process_qa_query = None
+            logger.info("QA服務v2初始化成功 (統一LLM架構)")
+        except ImportError:
+            try:
+                # 向後兼容舊版本
+                from services.qa_service.qa_client import process_qa_query
+                self.process_qa_query = process_qa_query
+                logger.info("QA服務v1初始化成功 (向後兼容)")
+            except ImportError as e:
+                logger.error(f"QA服務初始化失敗: {e}")
+                self.process_qa_query = None
 
     async def enter_mode(self, user_id: str) -> HandlerResponse:
         """進入QA模式"""
@@ -50,8 +57,7 @@ class QAHandler(BaseHandler):
 
             return HandlerResponse(
                 text=response_text,
-                quick_replies=self.create_exit_reply(),
-                needs_loading=True
+                quick_replies=self.create_exit_reply()
             )
 
         except Exception as e:

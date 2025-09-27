@@ -1,0 +1,26 @@
+# QA Service - 問答服務
+# 功能：向量化文檔檢索 + LLM 問答
+
+# 核心 LangChain 組件 - QA 服務使用 LangChain 進行對話管理
+langchain>=0.1.0
+langchain-openai>=0.0.5
+langchain-community>=0.0.13
+langchain-chroma>=0.0.2
+
+# 向量數據庫 - 文檔檢索核心
+chromadb>=0.4.15
+
+# 環境變數管理
+python-dotenv>=1.0.0
+
+# 數據驗證
+pydantic>=2.5.0
+
+# 依賴的服務
+# - model_service: 統一 LLM 接口（可選）
+
+# 標準庫依賴（無需安裝）:
+# - typing: 類型提示
+# - logging: 日誌記錄
+# - time: 時間處理
+# - hashlib: 快取鍵生成

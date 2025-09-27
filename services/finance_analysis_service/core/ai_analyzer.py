@@ -8,38 +8,18 @@ from .exceptions import AIError, ConfigError
 logger = logging.getLogger(__name__)
 
 class AIAnalyzer:
-    """AI分析器 - 直接調用LLM，不用LangChain"""
+    """AI分析器 - 使用統一 model_service"""
 
     def __init__(self):
-        self.llm_client = self._initialize_llm_client()
+        self.model_service = self._initialize_model_service()
 
-    def _initialize_llm_client(self):
-        """初始化LLM客戶端 - 直接使用provider避免循環依賴"""
-        if not FinanceConfig.validate_llm_config():
-            raise ConfigError("LLM配置不完整")
-
+    def _initialize_model_service(self):
+        """初始化統一 model_service"""
         try:
-            if FinanceConfig.LLM_PROVIDER == "openrouter":
-                from ..providers.openrouter_provider import OpenRouterFinanceProvider
-                provider = OpenRouterFinanceProvider(
-                    api_key=FinanceConfig.OPENROUTER_API_KEY,
-                    model_name=FinanceConfig.LLM_MODEL
-                )
-                return provider.get_llm(temperature=FinanceConfig.LLM_TEMPERATURE, max_tokens=4096)
-
-            elif FinanceConfig.LLM_PROVIDER == "openai":
-                from ..providers.openai_provider import OpenAIFinanceProvider
-                provider = OpenAIFinanceProvider(
-                    api_key=FinanceConfig.OPENAI_API_KEY,
-                    model_name=FinanceConfig.LLM_MODEL
-                )
-                return provider.get_llm(temperature=FinanceConfig.LLM_TEMPERATURE, max_tokens=4096)
-
-            else:
-                raise ConfigError(f"不支援的LLM提供商: {FinanceConfig.LLM_PROVIDER}")
-
+            from services.model_service import create_model_service
+            return create_model_service()
         except Exception as e:
-            logger.error(f"LLM初始化失敗: {e}")
+            logger.error(f"Model service 初始化失敗: {e}")
             raise ConfigError(f"LLM配置錯誤: {str(e)}")
 
     async def answer(self, question: str, metrics: Dict[str, Any], question_type: QuestionType) -> str:
@@ -47,10 +27,13 @@ class AIAnalyzer:
         try:
             prompt = self._build_prompt(question, metrics, question_type)
 
-            # 使用異步調用避免事件循環衝突
-            response = await self.llm_client.ainvoke(prompt)
+            # 使用統一 model_service 進行財務分析
+            messages = [{"role": "user", "content": prompt}]
+            response = await self.model_service.finance_completion(messages)
 
-            return self._format_response(response.content)
+            # 提取回應內容
+            content = response.content if hasattr(response, 'content') else str(response)
+            return self._format_response(content)
 
         except Exception as e:
             logger.error(f"AI分析失敗: {e}")
@@ -150,3 +133,8 @@ class AIAnalyzer:
 - 淨利潤：${metrics.get('net_profit', 0):,.2f}
 
 建議您稍後再試，或聯系技術支持。"""
+
+    async def close(self):
+        """關閉 model_service"""
+        if self.model_service:
+            await self.model_service.close()

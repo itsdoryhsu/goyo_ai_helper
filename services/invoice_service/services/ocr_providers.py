@@ -26,7 +26,7 @@ from typing import Optional
 # 導入新的模型服務
 try:
     from services.model_service import ocr_completion
-    from services.model_service.utils import create_user_message, create_system_message, extract_text_content
+    from services.model_service import create_user_message, create_system_message, extract_text_content
     MODEL_SERVICE_AVAILABLE = True
 except ImportError as e:
     print(f"Warning: Model service not available: {e}")

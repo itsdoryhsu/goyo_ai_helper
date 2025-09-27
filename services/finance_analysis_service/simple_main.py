@@ -12,8 +12,8 @@ sys.path.insert(0, PROJECT_ROOT)
 
 from dotenv import load_dotenv
 
-# 載入環境變數
-load_dotenv(dotenv_path=os.path.join(PROJECT_ROOT, '.env'))
+# 載入環境變數 - 強制覆蓋系統環境變數
+load_dotenv(dotenv_path=os.path.join(PROJECT_ROOT, '.env'), override=True)
 
 # 導入核心組件
 from .core.data_loader import DataLoader
@@ -107,6 +107,15 @@ class SimpleFinanceService:
         except Exception as e:
             logger.error(f"獲取數據概覽失敗: {e}")
             return {"status": "error", "error": str(e)}
+
+    async def close(self):
+        """關閉服務並清理資源"""
+        try:
+            if hasattr(self, 'ai_analyzer') and self.ai_analyzer:
+                await self.ai_analyzer.close()
+            logger.info("SimpleFinanceService 已關閉")
+        except Exception as e:
+            logger.error(f"關閉服務時發生錯誤: {e}")
 
     def clear_cache(self) -> None:
         """清除數據緩存 - 強制重新載入數據"""

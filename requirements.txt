@@ -1,0 +1,85 @@
+# Goyo AI Helper - 主項目依賴
+# 核心：LINE Bot + 統一 AI 服務架構
+
+# Web 框架 - LINE Bot 運行核心
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# LINE Bot SDK v3 - 官方 LINE 集成
+line-bot-sdk>=3.9.0
+
+# 環境變數管理 - 全局配置
+python-dotenv>=1.0.0
+
+# ========================================
+# 服務依賴自動導入（通過相對導入）
+# ========================================
+#
+# 以下服務有自己的 requirements.txt：
+#
+# services/model_service/requirements.txt
+# ├── httpx>=0.25.0
+# ├── python-dotenv>=1.0.0  (重複，但無害)
+# └── pydantic>=2.5.0
+#
+# services/qa_service/requirements.txt
+# ├── langchain>=0.1.0
+# ├── langchain-openai>=0.0.5
+# ├── langchain-community>=0.0.13
+# ├── langchain-chroma>=0.0.2
+# ├── chromadb>=0.4.15
+# ├── python-dotenv>=1.0.0  (重複，但無害)
+# └── pydantic>=2.5.0  (重複，但無害)
+#
+# services/finance_analysis_service/requirements.txt
+# ├── pandas>=2.1.0
+# ├── gspread>=5.12.0
+# ├── google-auth>=2.23.0
+# └── python-dotenv>=1.0.0  (重複，但無害)
+#
+# services/invoice_service/requirements.txt
+# ├── PyMuPDF>=1.23.0
+# ├── pandas>=2.1.0  (與 finance 重複)
+# ├── gspread>=5.12.0  (與 finance 重複)
+# ├── google-api-python-client>=2.108.0
+# ├── google-auth>=2.23.0  (與 finance 重複)
+# ├── python-dotenv>=1.0.0  (重複，但無害)
+# └── pydantic>=2.5.0  (重複，但無害)
+
+# ========================================
+# 合併所有服務依賴（去重後）
+# ========================================
+
+# HTTP 客戶端
+httpx>=0.25.0
+
+# 數據處理
+pandas>=2.1.0
+pydantic>=2.5.0
+
+# AI 相關
+langchain>=0.1.0
+langchain-openai>=0.0.5
+langchain-community>=0.0.13
+langchain-chroma>=0.0.2
+chromadb>=0.4.15
+
+# Google 服務集成
+gspread>=5.12.0
+google-api-python-client>=2.108.0
+google-auth>=2.23.0
+
+# 文件處理
+PyMuPDF>=1.23.0
+
+# 標準庫依賴（無需安裝）:
+# - typing, logging, os, sys, json, base64, enum, abc, time, asyncio
+
+# ========================================
+# Linus 哲學：簡單、乾淨、可預測
+# ========================================
+#
+# 1. 每個服務有自己的 requirements.txt
+# 2. 主項目合併所有依賴（方便部署）
+# 3. 版本鎖定到主版本（避免破壞性更新）
+# 4. 明確列出重複項（透明度勝過聰明）
