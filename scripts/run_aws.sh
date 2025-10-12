@@ -22,12 +22,12 @@ fi
 
 # 停止舊的程序
 echo "正在停止任何可能在運行的舊程序..."
-pkill -f "line_bot_v4_simple_client.py"
+pkill -f "line_bot_v5_clean.py"
 pkill -f "ngrok http"
 
 # 啟動 Line Bot 伺服器 (背景執行)
 echo "正在背景啟動 Line Bot 伺服器..."
-/home/ubuntu/財/venv_aws/bin/python3 clients/line_bot/line_bot_v4_simple_client.py > logs/line_bot_simple_client.log 2>&1 &
+/home/ubuntu/財/venv_aws/bin/python3 clients/line_bot/line_bot_v5_clean.py > logs/line_bot_v5_clean.log 2>&1 &
 BOT_PID=$!
 echo "Line Bot 已啟動，PID: $BOT_PID"
 
@@ -88,5 +88,5 @@ echo "服務正在背景運行中。日誌檔案位於 /logs 資料夾。"
 echo "========================================================================"
 echo ""
 echo "若要停止所有服務，請執行以下命令："
-echo "pkill -f 'line_bot_v4_simple_client.py' && pkill -f 'ngrok http'"
+echo "pkill -f 'line_bot_v5_clean.py' && pkill -f 'ngrok http'"
 echo ""

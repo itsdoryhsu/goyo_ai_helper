@@ -15,6 +15,7 @@ class HandlerResponse:
     needs_loading: bool = False
     processing_time: Optional[float] = None
     template_data: Optional[Dict[str, Any]] = None
+    temp_data: Optional[Dict[str, Any]] = None
 
 class BaseHandler(ABC):
     """基礎處理器 - 所有服務處理器的父類"""

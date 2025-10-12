@@ -24,7 +24,8 @@ fi
 echo "正在停止任何可能在運行的舊程序..."
 pkill -f "line_bot_v4_simple_client.py"
 pkill -f "line_bot_v5_clean.py"
-pkill -f "ngrok http $LINE_BOT_PORT"
+pkill -f "ngrok http"
+pkill -f "run_app.sh"
 
 # 啟動 ngrok 先 (背景執行)
 echo "正在背景啟動 ngrok..."

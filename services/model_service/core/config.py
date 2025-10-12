@@ -60,13 +60,13 @@ class ServiceConfig:
     _DEFAULT_CONFIGS = {
         ServiceType.QA: ModelConfig(
             provider=ProviderType.OPENROUTER,
-            model="x-ai/grok-4-fast:free",
+            model="openai/gpt-oss-20b:free",
             temperature=0.4,
             max_tokens=4096
         ),
         ServiceType.FINANCE: ModelConfig(
             provider=ProviderType.OPENROUTER,
-            model="x-ai/grok-4-fast:free",
+            model="deepseek/deepseek-r1:free",
             temperature=0.3,
             max_tokens=8192
         ),
@@ -78,24 +78,37 @@ class ServiceConfig:
         )
     }
 
-    # 備援配置鏈 - 按優先級排序
-    _FALLBACK_CONFIGS = {
-        ServiceType.QA: [
-            ModelConfig(ProviderType.OPENROUTER, "x-ai/grok-4-fast:free", 0.4),
-            ModelConfig(ProviderType.OPENAI, "gpt-4", 0.4),
-            ModelConfig(ProviderType.GEMINI, "gemini-2.0-flash-exp", 0.4),
-        ],
-        ServiceType.FINANCE: [
-            ModelConfig(ProviderType.OPENROUTER, "x-ai/grok-4-fast:free", 0.3),
-            ModelConfig(ProviderType.OPENAI, "gpt-4", 0.3),
-            ModelConfig(ProviderType.GEMINI, "gemini-2.0-flash-exp", 0.3),
-        ],
-        ServiceType.OCR: [
-            ModelConfig(ProviderType.GEMINI, "gemini-2.5-flash", 0.1),
-            ModelConfig(ProviderType.OPENAI, "gpt-4o", 0.1),
-            ModelConfig(ProviderType.OPENROUTER, "google/gemini-2.0-flash-exp:free", 0.1),
-        ]
-    }
+    # 備援配置鏈 - 按優先級排序，使用環境變數配置
+    @classmethod
+    def _get_fallback_configs(cls):
+        """動態生成備援配置，使用環境變數中的模型"""
+        # 從環境變數讀取備用模型
+        backup_chat_model = os.getenv("BACKUP_CHAT_MODEL", "gpt-4")
+        backup_analysis_model = os.getenv("BACKUP_ANALYSIS_MODEL", "gpt-4")
+        backup_vision_model = os.getenv("BACKUP_VISION_MODEL", "gpt-4o")
+
+        # 如果配置了MODEL_NAME，優先使用它作為OpenAI備用模型
+        openai_model = os.getenv("MODEL_NAME", backup_chat_model)
+
+        return {
+            ServiceType.QA: [
+                ModelConfig(ProviderType.OPENROUTER, "x-ai/grok-4-fast:free", 0.4),
+                ModelConfig(ProviderType.OPENAI, openai_model, 0.4),
+                ModelConfig(ProviderType.GEMINI, "gemini-2.0-flash-exp", 0.4),
+            ],
+            ServiceType.FINANCE: [
+                ModelConfig(ProviderType.OPENROUTER, "x-ai/grok-4-fast:free", 0.3),
+                ModelConfig(ProviderType.OPENAI, openai_model, 0.3),
+                ModelConfig(ProviderType.GEMINI, "gemini-2.0-flash-exp", 0.3),
+            ],
+            ServiceType.OCR: [
+                ModelConfig(ProviderType.GEMINI, "gemini-2.5-flash", 0.1),
+                ModelConfig(ProviderType.OPENAI, backup_vision_model, 0.1),
+                ModelConfig(ProviderType.OPENROUTER, "google/gemini-2.0-flash-exp:free", 0.1),
+            ]
+        }
+
+    _FALLBACK_CONFIGS = None  # 將在第一次調用時初始化
 
     @classmethod
     def get_primary_config(cls, service_type: ServiceType) -> ModelConfig:
@@ -110,6 +123,9 @@ class ServiceConfig:
     @classmethod
     def get_fallback_chain(cls, service_type: ServiceType) -> list[ModelConfig]:
         """獲取服務的備援配置鏈"""
+        if cls._FALLBACK_CONFIGS is None:
+            cls._FALLBACK_CONFIGS = cls._get_fallback_configs()
+
         return cls._FALLBACK_CONFIGS.get(service_type, cls._FALLBACK_CONFIGS[ServiceType.QA])
 
     @classmethod

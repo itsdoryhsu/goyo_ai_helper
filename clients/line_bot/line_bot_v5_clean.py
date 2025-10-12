@@ -160,6 +160,9 @@ class LineBotController:
             # 判斷媒體類型
             media_type = 'image/jpeg' if isinstance(event.message, ImageMessageContent) else 'application/pdf'
 
+            # 預先發送loading動畫 (文件處理通常需要較長時間)
+            await self.line_client.send_loading_animation(user_id)
+
             # 處理文件
             handler = self.service_registry.get_handler(session.current_handler)
             response = await handler.handle_file(user_id, file_data, media_type)
@@ -186,11 +189,31 @@ class LineBotController:
             action = params.get('action')
 
             if action == 'save_invoice':
-                await self.line_client.reply_text(
-                    event.reply_token,
-                    "✅ 發票資料已確認儲存！\n感謝您的使用。"
-                )
-                # TODO: 實際儲存邏輯
+                # 實際儲存邏輯
+                try:
+                    user_session = self.session_manager.get_session(params.get('user_id'))
+                    if 'last_invoice' in user_session.temp_data:
+                        invoice_data = user_session.temp_data['last_invoice']
+                        file_data = user_session.temp_data.get('last_file_data', b'')
+                        media_type = user_session.temp_data.get('last_media_type', 'image/jpeg')
+
+                        # 調用invoice_service的save_invoice_data
+                        invoice_handler = self.service_registry.get_handler("照片記帳")
+                        if invoice_handler and invoice_handler.invoice_service:
+                            spreadsheet_url = invoice_handler.invoice_service.save_invoice_data(invoice_data, file_data, media_type)
+                            user_session.temp_data.clear()
+
+                            await self.line_client.reply_text(
+                                event.reply_token,
+                                f"✅ 發票資料已確認儲存到試算表！\n\n📊 試算表連結:\n{spreadsheet_url}\n\n感謝您的使用。"
+                            )
+                        else:
+                            await self.line_client.reply_text(event.reply_token, "❌ 發票服務未準備好，無法儲存")
+                    else:
+                        await self.line_client.reply_text(event.reply_token, "❌ 找不到發票資料，請重新辨識")
+                except Exception as e:
+                    logger.error(f"儲存發票失敗: {e}")
+                    await self.line_client.reply_text(event.reply_token, "❌ 儲存發票時發生錯誤，請稍後再試")
 
             elif action == 'edit_invoice':
                 await self.line_client.reply_text(
@@ -217,6 +240,11 @@ class LineBotController:
     async def _send_handler_response(self, reply_token: str, user_id: str, response: HandlerResponse):
         """發送處理器回應 - 統一接口"""
         # loading動畫現在在handler調用前發送，這裡不需要重複
+
+        # 保存臨時數據到會話
+        if response.temp_data:
+            session = self.session_manager.get_session(user_id)
+            session.temp_data.update(response.temp_data)
 
         # 處理確認卡片
         if response.text == "confirm_template" and response.template_data:

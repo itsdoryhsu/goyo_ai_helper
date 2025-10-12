@@ -54,6 +54,10 @@ class InvoiceHandler(BaseHandler):
                 file_data, media_type
             )
 
+            # 添加用戶資訊到發票數據
+            invoice_data['user_id'] = user_id
+            invoice_data['user_display_name'] = user_id  # 可以後續改為實際顯示名稱
+
             # 格式化確認卡片文字
             confirm_text = self._format_invoice_confirm_text(invoice_data, usage)
 
@@ -67,7 +71,12 @@ class InvoiceHandler(BaseHandler):
                     "cancel_data": f"action=edit_invoice&user_id={user_id}",
                     "alt_text": "發票辨識結果確認"
                 },
-                needs_loading=True
+                needs_loading=True,
+                temp_data={
+                    "last_invoice": invoice_data,
+                    "last_file_data": file_data,
+                    "last_media_type": media_type
+                }
             )
 
         except Exception as e:

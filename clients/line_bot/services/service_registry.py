@@ -5,7 +5,7 @@
 from typing import Dict
 from ..handlers.base_handler import BaseHandler
 from ..handlers.qa_handler import QAHandler
-from ..handlers.finance_handler import FinanceHandler
+from ..handlers.finance_handler_clean import FinanceHandlerClean
 from ..handlers.invoice_handler import InvoiceHandler
 from ..handlers.calendar_handler import CalendarHandler
 from ..models.user_session import SessionState
@@ -18,7 +18,7 @@ class ServiceRegistry:
         self._handlers: Dict[str, BaseHandler] = {
             "QA問答": QAHandler(),
             "照片記帳": InvoiceHandler(),
-            "財務分析": FinanceHandler(),
+            "財務分析": FinanceHandlerClean(),
             "記事提醒": CalendarHandler()
         }
 
