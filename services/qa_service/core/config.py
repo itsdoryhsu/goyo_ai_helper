@@ -6,7 +6,7 @@ class QAConfig:
 
     # LLM 配置
     LLM_PROVIDER: str = os.getenv("QA_PROVIDER", "openrouter")
-    LLM_MODEL: str = os.getenv("QA_SERVICE_MODEL", "x-ai/grok-4-fast:free")
+    LLM_MODEL: str = os.getenv("QA_SERVICE_MODEL", "openai/gpt-oss-20b:free")
     LLM_TEMPERATURE: float = float(os.getenv("QA_SERVICE_TEMPERATURE", "0.7"))
     LLM_MAX_TOKENS: int = int(os.getenv("QA_SERVICE_MAX_TOKENS", "4096"))
 
