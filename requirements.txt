@@ -52,6 +52,7 @@ python-dotenv>=1.0.0
 
 # HTTP 客戶端
 httpx>=0.25.0
+aiohttp>=3.9.0
 
 # 數據處理
 pandas>=2.1.0
@@ -70,9 +71,11 @@ google-api-python-client>=2.108.0
 google-auth>=2.23.0
 google-auth-oauthlib>=1.0.0
 google-auth-httplib2>=0.2.0
+google-generativeai>=0.3.0
 
 # 文件處理
 PyMuPDF>=1.23.0
+Pillow>=10.0.0
 
 # 標準庫依賴（無需安裝）:
 # - typing, logging, os, sys, json, base64, enum, abc, time, asyncio

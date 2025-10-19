@@ -2,7 +2,7 @@ from pydantic import BaseModel
 import base64
 from typing import Tuple, Dict
 
-from config.settings import (
+from ..config.settings import (
     OPENAI_API_KEY, MODEL_NAME, GOOGLE_API_KEY, GOOGLE_MODEL_NAME,
     OCR_PROVIDER, TEMPERATURE, OCR_SYSTEM_PROMPT, COMPANYNO
 )
