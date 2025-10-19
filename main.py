@@ -23,7 +23,7 @@ from clients.line_bot.line_bot_v5_clean import app
 # 本地開發和雲端部署使用
 if __name__ == "__main__":
     import uvicorn
-    # 支援多種部署平台的端口配置
-    port = int(os.environ.get("PORT", 8000))
+    # 支援多種部署平台的端口配置 (Render 會自動設定 PORT)
+    port = int(os.environ.get("PORT", 10000))
     print(f"🚀 啟動 Goyo AI Helper 於端口 {port}")
     uvicorn.run(app, host="0.0.0.0", port=port)
