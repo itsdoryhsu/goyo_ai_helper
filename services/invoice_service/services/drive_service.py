@@ -3,12 +3,13 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload, MediaIoBaseUpload
 import io
+import os
+import json
 from ..config.settings import DRIVE_SCOPES, SUPPORTED_IMAGE_EXTENSIONS, FOLDER_ID, INVOICE_DRIVE_FOLDER_NAME
 from ..config.settings import GOOGLE_APPLICATION_CREDENTIALS
 
 class DriveService:
     def __init__(self):
-        self.credentials_path = GOOGLE_APPLICATION_CREDENTIALS
         self.service = self._setup_service()
         # 優先使用 .env 中設定的 FOLDER_ID
         if FOLDER_ID:
@@ -18,13 +19,28 @@ class DriveService:
             # 如果 .env 中未設定，則退回原有邏輯
             print("在 .env 中未找到 FOLDER_ID，將嘗試尋找或建立 '發票檔案' 資料夾。")
             self.invoice_folder_id = self._get_or_create_folder(INVOICE_DRIVE_FOLDER_NAME)
-    
+
     def _setup_service(self):
         """設定 Google Drive 服務"""
-        creds = service_account.Credentials.from_service_account_file(
-            self.credentials_path,
-            scopes=DRIVE_SCOPES
-        )
+        # 支援 JSON 字符串和檔案路徑兩種認證方式
+        creds_data = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', GOOGLE_APPLICATION_CREDENTIALS)
+
+        try:
+            # 嘗試解析為 JSON 字符串
+            creds_dict = json.loads(creds_data)
+            creds = service_account.Credentials.from_service_account_info(
+                creds_dict,
+                scopes=DRIVE_SCOPES
+            )
+        except json.JSONDecodeError:
+            # 如果不是 JSON，當作檔案路徑處理
+            PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+            credentials_path = os.path.join(PROJECT_ROOT, creds_data)
+            creds = service_account.Credentials.from_service_account_file(
+                credentials_path,
+                scopes=DRIVE_SCOPES
+            )
+
         return build("drive", "v3", credentials=creds)
 
     def _get_or_create_folder(self, folder_name):

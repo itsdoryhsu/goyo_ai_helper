@@ -41,26 +41,38 @@ class DataLoader:
         from google.oauth2.service_account import Credentials
         import os
         import pandas as pd
+        import json
 
         try:
             # 使用Google Sheets API直接讀取
-            creds_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
-            if not creds_path:
+            creds_data = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+            if not creds_data:
                 raise DataLoadError("GOOGLE_APPLICATION_CREDENTIALS 未設置")
-
-            # 處理相對路徑問題
-            if not os.path.isabs(creds_path):
-                # 相對於項目根目錄
-                project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-                creds_path = os.path.join(project_root, creds_path)
-
-            if not os.path.exists(creds_path):
-                raise DataLoadError(f"Google認證文件不存在：{creds_path}")
 
             scope = ['https://www.googleapis.com/auth/spreadsheets',
                      'https://www.googleapis.com/auth/drive']
-            creds = Credentials.from_service_account_file(creds_path, scopes=scope)
-            client = gspread.authorize(creds)
+
+            # 檢查是否為 JSON 字符串或文件路徑
+            try:
+                # 嘗試解析為 JSON 字符串
+                creds_dict = json.loads(creds_data)
+                credentials = Credentials.from_service_account_info(creds_dict, scopes=scope)
+            except json.JSONDecodeError:
+                # 如果不是 JSON，當作文件路徑處理
+                creds_path = creds_data
+
+                # 處理相對路徑問題
+                if not os.path.isabs(creds_path):
+                    # 相對於項目根目錄
+                    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+                    creds_path = os.path.join(project_root, creds_path)
+
+                if not os.path.exists(creds_path):
+                    raise DataLoadError(f"Google認證文件不存在：{creds_path}")
+
+                credentials = Credentials.from_service_account_file(creds_path, scopes=scope)
+
+            client = gspread.authorize(credentials)
 
             # 打開指定的工作表
             sheet = client.open_by_key(spreadsheet_id)

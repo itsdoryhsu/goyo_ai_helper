@@ -1,16 +1,32 @@
 import os
 import gspread
 import pandas as pd
+import json
 from datetime import datetime
+from google.oauth2.service_account import Credentials
 from ..config.settings import SPREADSHEET_NAME, WORKSHEET_NAME, GOOGLE_APPLICATION_CREDENTIALS
 
 class SpreadsheetService:
     def __init__(self):
-        PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-        self.credentials_path = os.path.join(PROJECT_ROOT, GOOGLE_APPLICATION_CREDENTIALS)
         self.spreadsheet_name = SPREADSHEET_NAME
         self.worksheet_name = WORKSHEET_NAME
-        self.gc = gspread.service_account(filename=self.credentials_path)
+
+        # 支援 JSON 字符串和檔案路徑兩種認證方式
+        creds_data = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', GOOGLE_APPLICATION_CREDENTIALS)
+
+        scope = ['https://www.googleapis.com/auth/spreadsheets',
+                 'https://www.googleapis.com/auth/drive']
+
+        try:
+            # 嘗試解析為 JSON 字符串
+            creds_dict = json.loads(creds_data)
+            credentials = Credentials.from_service_account_info(creds_dict, scopes=scope)
+            self.gc = gspread.authorize(credentials)
+        except json.JSONDecodeError:
+            # 如果不是 JSON，當作檔案路徑處理
+            PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+            credentials_path = os.path.join(PROJECT_ROOT, creds_data)
+            self.gc = gspread.service_account(filename=credentials_path)
 
         # 定義類別關鍵字對應表
         self.category_keywords = {
