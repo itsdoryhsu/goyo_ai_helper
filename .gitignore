@@ -56,6 +56,9 @@ temp_*
 # 環境變數和設定
 .env
 *.env
+.env.backup.*
+.env.original
+.env.*backup*
 
 # Archive 資料夾
 _archive/
