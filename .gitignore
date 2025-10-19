@@ -45,8 +45,8 @@ data/vectorstore/
 # Streamlit 密鑰
 .streamlit/secrets.toml
 
-# 配置檔案和敏感資料
-config/
+# 配置檔案和敏感資料 (僅根目錄)
+/config/
 *.log
 logs/
 temp_*
