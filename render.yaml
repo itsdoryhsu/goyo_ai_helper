@@ -1,0 +1,42 @@
+# Render.com 部署配置
+# 單體部署：所有服務運行在一個容器中
+
+services:
+  # 主要的 LINE Bot 服務
+  - type: web
+    name: goyo-linebot
+    env: python
+    plan: free  # 免費方案
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python main.py"
+    envVars:
+      - key: LINE_CHANNEL_ACCESS_TOKEN
+        sync: false  # 手動設定
+      - key: LINE_CHANNEL_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GOOGLE_AUTH_BASE_URL
+        value: https://goyo-linebot.onrender.com  # 將被 Render 自動替換
+      - key: LINE_BOT_PORT
+        value: "10000"  # Render 固定使用 PORT 環境變數
+
+  # OAuth 服務 (如果需要分離)
+  - type: web
+    name: goyo-oauth
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python services/google_auth_service/oauth_server.py"
+    envVars:
+      - key: PORT
+        value: "10000"
+
+# 資料庫 (如果需要)
+databases:
+  - name: goyo-postgres
+    plan: free  # 免費 PostgreSQL
+    databaseName: goyo_db
+    user: goyo_user

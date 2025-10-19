@@ -276,6 +276,25 @@ async def lifespan(app: FastAPI):
     line_client = LineClient(async_api_client, LINE_CHANNEL_ACCESS_TOKEN)
     bot_controller = LineBotController(session_manager, service_registry, line_client)
 
+    # 初始化 OAuth 服務並加入路由
+    try:
+        from services.google_auth_service.services.oauth_service import GoogleOAuthService
+        from services.google_auth_service.services.web_routes import create_oauth_routes
+
+        # 設定 Google OAuth 服務
+        base_url = os.getenv('GOOGLE_AUTH_BASE_URL', 'http://localhost:8000')
+        client_secrets_path = 'config/gmail_accounts/itsdoryhsu/client_secret_865894595003-1tp7pt3rdn0ku3cb1sd8dac9gjdt8qu3.apps.googleusercontent.com.json'
+
+        oauth_service = GoogleOAuthService(client_secrets_path, base_url)
+        oauth_router = create_oauth_routes(oauth_service)
+
+        # 將 OAuth 路由包含到主應用
+        app.include_router(oauth_router)
+
+        logger.info("OAuth 服務初始化完成")
+    except Exception as e:
+        logger.error(f"OAuth 服務初始化失敗: {e}")
+
     logger.info("LINE Bot v5 初始化完成")
 
     yield

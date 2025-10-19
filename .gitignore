@@ -72,3 +72,6 @@ aws-*
 *.key
 credentials
 config
+
+# 部署相關
+*.deployment
