@@ -35,7 +35,36 @@ class GoogleOAuthService:
         self.base_url = base_url
         self.redirect_uri = f"{base_url}/oauth/callback"
         self.db_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data', 'user_bindings.sqlite')
+
+        # 檢查是否使用環境變數配置
+        self.use_env_config = self._check_env_config()
+
         self._init_database()
+
+    def _check_env_config(self) -> bool:
+        """檢查是否可以使用環境變數配置"""
+        required_env_vars = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_PROJECT_ID']
+        return all(os.getenv(var) for var in required_env_vars)
+
+    def _get_client_config(self) -> dict:
+        """獲取客戶端配置，優先使用環境變數"""
+        if self.use_env_config:
+            return {
+                "web": {
+                    "client_id": os.getenv('GOOGLE_CLIENT_ID'),
+                    "client_secret": os.getenv('GOOGLE_CLIENT_SECRET'),
+                    "project_id": os.getenv('GOOGLE_PROJECT_ID'),
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri": "https://oauth2.googleapis.com/token",
+                    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                    "redirect_uris": [self.redirect_uri]
+                }
+            }
+        else:
+            # 備用：從文件讀取
+            import json
+            with open(self.client_secrets_path, 'r') as f:
+                return json.load(f)
 
     def _init_database(self):
         """初始化資料庫"""
@@ -85,12 +114,20 @@ class GoogleOAuthService:
             OAuth 授權 URL
         """
         try:
-            # 建立 OAuth flow
-            flow = Flow.from_client_secrets_file(
-                self.client_secrets_path,
-                scopes=self.SCOPES,
-                redirect_uri=self.redirect_uri
-            )
+            # 建立 OAuth flow，支援環境變數和文件兩種方式
+            if self.use_env_config:
+                client_config = self._get_client_config()
+                flow = Flow.from_client_config(
+                    client_config,
+                    scopes=self.SCOPES,
+                    redirect_uri=self.redirect_uri
+                )
+            else:
+                flow = Flow.from_client_secrets_file(
+                    self.client_secrets_path,
+                    scopes=self.SCOPES,
+                    redirect_uri=self.redirect_uri
+                )
 
             # 產生 state 參數
             state = str(uuid.uuid4())
@@ -153,13 +190,22 @@ class GoogleOAuthService:
                 conn.execute("DELETE FROM oauth_states WHERE state = ?", (state,))
                 conn.commit()
 
-            # 使用授權碼換取 token
-            flow = Flow.from_client_secrets_file(
-                self.client_secrets_path,
-                scopes=self.SCOPES,
-                redirect_uri=self.redirect_uri,
-                state=state
-            )
+            # 使用授權碼換取 token，支援環境變數和文件兩種方式
+            if self.use_env_config:
+                client_config = self._get_client_config()
+                flow = Flow.from_client_config(
+                    client_config,
+                    scopes=self.SCOPES,
+                    redirect_uri=self.redirect_uri,
+                    state=state
+                )
+            else:
+                flow = Flow.from_client_secrets_file(
+                    self.client_secrets_path,
+                    scopes=self.SCOPES,
+                    redirect_uri=self.redirect_uri,
+                    state=state
+                )
 
             flow.fetch_token(code=code)
             credentials = flow.credentials
