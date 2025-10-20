@@ -8,34 +8,12 @@ LINE Bot 財務稅法顧問系統
 
 import os
 import sys
-import shutil
-import glob
+import importlib
 
-# 強制清除Python快取 - 解決部署環境快取問題
-def clear_deployment_cache():
-    """清除部署環境的Python快取，確保模組正確載入"""
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # 清除 __pycache__ 目錄
-    for pycache_dir in glob.glob(os.path.join(current_dir, "**", "__pycache__"), recursive=True):
-        try:
-            shutil.rmtree(pycache_dir)
-            print(f"清除快取目錄: {pycache_dir}")
-        except Exception as e:
-            print(f"清除快取失敗 {pycache_dir}: {e}")
-
-    # 清除 .pyc 檔案
-    for pyc_file in glob.glob(os.path.join(current_dir, "**", "*.pyc"), recursive=True):
-        try:
-            os.remove(pyc_file)
-            print(f"清除快取檔案: {pyc_file}")
-        except Exception as e:
-            print(f"清除快取檔案失敗 {pyc_file}: {e}")
-
-# 部署環境強制清除快取
-if os.environ.get("RENDER"):
-    print("🧹 偵測到Render部署環境，強制清除Python快取...")
-    clear_deployment_cache()
+# 部署環境優化 - 清除模組快取
+if os.environ.get("RENDER") or os.environ.get("PYTHONDONTWRITEBYTECODE"):
+    print("🚀 部署環境偵測，清除Python模組快取...")
+    importlib.invalidate_caches()
 
 # 添加當前目錄到Python路徑
 current_dir = os.path.dirname(os.path.abspath(__file__))

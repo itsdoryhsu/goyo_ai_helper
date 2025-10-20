@@ -10,6 +10,10 @@ services:
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python main.py"
     envVars:
+      - key: PYTHONDONTWRITEBYTECODE
+        value: "1"  # 防止生成 __pycache__ 檔案
+      - key: PYTHONUNBUFFERED
+        value: "1"  # 即時輸出 log
       - key: LINE_CHANNEL_ACCESS_TOKEN
         sync: false  # 手動設定
       - key: LINE_CHANNEL_SECRET
