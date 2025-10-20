@@ -81,21 +81,19 @@ class QAService:
                 # 財務問題使用完整提示
                 prompt = QAConfig.SYSTEM_PROMPT.format(context=context)
 
-            # 構建包含歷史記錄的對話內容
-            messages = []
+            # 構建標準的 messages 格式
+            messages = [{"role": "system", "content": prompt}]
+
+            # 添加對話歷史
             for q, a in chat_history:
-                messages.append(f"用戶: {q}")
-                messages.append(f"助理: {a}")
+                messages.append({"role": "user", "content": q})
+                messages.append({"role": "assistant", "content": a})
 
             # 添加當前問題
-            full_content = f"{prompt}\n\n" + "\n".join(messages) + f"\n用戶: {question}\n助理:"
+            messages.append({"role": "user", "content": question})
 
             # 調用統一 model_service (自動 fallback)
-            from services.model_service.core.models import ServiceType
-            response = await self.model_service.achat(
-                content=full_content,
-                service_type=ServiceType.QA
-            )
+            response = await self.model_service.qa_completion(messages)
 
             return {
                 "answer": response.content,
