@@ -5,8 +5,13 @@ from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload, MediaIoBa
 import io
 import os
 import json
-from ..config.settings import DRIVE_SCOPES, SUPPORTED_IMAGE_EXTENSIONS, FOLDER_ID, INVOICE_DRIVE_FOLDER_NAME
-from ..config.settings import GOOGLE_APPLICATION_CREDENTIALS
+try:
+    from ..config.settings import DRIVE_SCOPES, SUPPORTED_IMAGE_EXTENSIONS, FOLDER_ID, INVOICE_DRIVE_FOLDER_NAME
+    from ..config.settings import GOOGLE_APPLICATION_CREDENTIALS
+except ImportError:
+    # 當從其他服務導入時，使用絕對導入
+    from services.invoice_service.config import DRIVE_SCOPES, SUPPORTED_IMAGE_EXTENSIONS, FOLDER_ID, INVOICE_DRIVE_FOLDER_NAME
+    from services.invoice_service.config import GOOGLE_APPLICATION_CREDENTIALS
 
 class DriveService:
     def __init__(self):

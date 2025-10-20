@@ -13,10 +13,17 @@ project_root = os.path.abspath(os.path.join(current_dir, '..', '..', '..'))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from ..config.settings import (
-    OPENAI_API_KEY, MODEL_NAME, GOOGLE_API_KEY, GOOGLE_MODEL_NAME,
-    OCR_PROVIDER, TEMPERATURE, OCR_SYSTEM_PROMPT, COMPANYNO
-)
+try:
+    from ..config.settings import (
+        OPENAI_API_KEY, MODEL_NAME, GOOGLE_API_KEY, GOOGLE_MODEL_NAME,
+        OCR_PROVIDER, TEMPERATURE, OCR_SYSTEM_PROMPT, COMPANYNO
+    )
+except ImportError:
+    # 當從其他服務導入時，使用絕對導入
+    from services.invoice_service.config import (
+        OPENAI_API_KEY, MODEL_NAME, GOOGLE_API_KEY, GOOGLE_MODEL_NAME,
+        OCR_PROVIDER, TEMPERATURE, OCR_SYSTEM_PROMPT, COMPANYNO
+    )
 from ..utils.file_utils import convert_pdf_to_image
 import openai
 import google.generativeai as genai

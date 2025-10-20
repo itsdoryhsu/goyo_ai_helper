@@ -31,7 +31,11 @@ def generate_drive_link(file_id):
 import fitz  # PyMuPDF
 from io import BytesIO
 from PIL import Image
-from ..config.settings import PDF_DPI # 導入 PDF_DPI
+try:
+    from ..config.settings import PDF_DPI # 導入 PDF_DPI
+except ImportError:
+    # 當從其他服務導入時，使用絕對導入
+    from services.invoice_service.config import PDF_DPI
 
 def convert_pdf_to_image(pdf_data: bytes) -> bytes:
     """

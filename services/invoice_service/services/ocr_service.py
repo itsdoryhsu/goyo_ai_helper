@@ -2,10 +2,17 @@ from pydantic import BaseModel
 import base64
 from typing import Tuple, Dict
 
-from ..config.settings import (
-    OPENAI_API_KEY, MODEL_NAME, GOOGLE_API_KEY, GOOGLE_MODEL_NAME,
-    OCR_PROVIDER, TEMPERATURE, OCR_SYSTEM_PROMPT, COMPANYNO
-)
+try:
+    from ..config.settings import (
+        OPENAI_API_KEY, MODEL_NAME, GOOGLE_API_KEY, GOOGLE_MODEL_NAME,
+        OCR_PROVIDER, TEMPERATURE, OCR_SYSTEM_PROMPT, COMPANYNO
+    )
+except ImportError:
+    # 當從其他服務導入時，使用絕對導入
+    from services.invoice_service.config import (
+        OPENAI_API_KEY, MODEL_NAME, GOOGLE_API_KEY, GOOGLE_MODEL_NAME,
+        OCR_PROVIDER, TEMPERATURE, OCR_SYSTEM_PROMPT, COMPANYNO
+    )
 from ..utils.file_utils import convert_pdf_to_image
 from .ocr_providers import InvoiceData, OpenAICRProvider, GoogleOCRProvider, OpenRouterOCRProvider, OCRProvider, MODEL_SERVICE_AVAILABLE
 
