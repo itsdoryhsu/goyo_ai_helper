@@ -6,9 +6,7 @@ from .config import QAConfig
 from .models import QARequest, QAResponse, UserSession
 from .exceptions import QAServiceError, LLMError, VectorStoreError, ConfigError
 from ..providers.base import LLMProvider, VectorStoreProvider
-from ..providers.openrouter_provider import OpenRouterQAProvider
-from ..providers.openai_provider import OpenAIQAProvider
-from ..providers.gemini_provider import GeminiQAProvider
+# 使用統一的 model_service 替代分散的 providers
 from ..providers.vectorstore_provider import ChromaVectorStoreProvider
 
 logger = logging.getLogger(__name__)
@@ -51,7 +49,7 @@ class QAService:
     """QA服務核心類 - 統一LLM提供商架構"""
 
     def __init__(self):
-        self.llm_provider: Optional[LLMProvider] = None
+        self.model_service = None  # 統一 model_service
         self.vectorstore_provider: Optional[VectorStoreProvider] = None
         self.session_manager = SessionManager()
         self._initialize_providers()
@@ -59,42 +57,61 @@ class QAService:
     def _initialize_providers(self):
         """初始化提供商"""
         try:
-            # 初始化LLM提供商
-            self.llm_provider = self._create_llm_provider()
+            # 使用統一的 model_service 替代自定義 LLM providers
+            from services.model_service import create_model_service
+            self.model_service = create_model_service()
 
             # 初始化向量存儲提供商
             self.vectorstore_provider = ChromaVectorStoreProvider()
 
-            logger.info("QA Service providers initialized successfully")
+            logger.info("QA Service providers initialized successfully with unified model_service")
 
         except Exception as e:
             logger.error(f"Failed to initialize QA Service providers: {e}")
             raise ConfigError(f"QA服務初始化失敗: {e}")
 
-    def _create_llm_provider(self) -> LLMProvider:
-        """創建LLM提供商"""
-        if not QAConfig.validate_llm_config():
-            raise ConfigError("LLM配置不完整")
+    async def _generate_answer_with_model_service(self, question: str, context: str, chat_history: list) -> Dict[str, Any]:
+        """使用統一 model_service 生成答案 - 自動 fallback"""
+        try:
+            # 構建提示
+            if context == "無需參考文檔":
+                # 簡單問題使用精簡提示
+                prompt = QAConfig.SIMPLE_PROMPT
+            else:
+                # 財務問題使用完整提示
+                prompt = QAConfig.SYSTEM_PROMPT.format(context=context)
 
-        provider = QAConfig.LLM_PROVIDER.lower()
+            # 構建包含歷史記錄的對話內容
+            messages = []
+            for q, a in chat_history:
+                messages.append(f"用戶: {q}")
+                messages.append(f"助理: {a}")
 
-        if provider == "openrouter":
-            return OpenRouterQAProvider(
-                api_key=QAConfig.OPENROUTER_API_KEY,
-                model_name=QAConfig.LLM_MODEL
+            # 添加當前問題
+            full_content = f"{prompt}\n\n" + "\n".join(messages) + f"\n用戶: {question}\n助理:"
+
+            # 調用統一 model_service (自動 fallback)
+            from services.model_service.core.models import ServiceType
+            response = await self.model_service.achat(
+                content=full_content,
+                service_type=ServiceType.QA
             )
-        elif provider == "openai":
-            return OpenAIQAProvider(
-                api_key=QAConfig.OPENAI_API_KEY,
-                model_name=QAConfig.LLM_MODEL
-            )
-        elif provider == "google" or provider == "gemini":
-            return GeminiQAProvider(
-                api_key=QAConfig.GOOGLE_API_KEY,
-                model_name=QAConfig.GOOGLE_MODEL_NAME
-            )
-        else:
-            raise ConfigError(f"不支援的LLM提供商: {provider}")
+
+            return {
+                "answer": response.content,
+                "model": response.model_name,
+                "provider": response.provider.value,
+                "tokens": {
+                    "total": response.usage.total_tokens,
+                    "prompt": response.usage.prompt_tokens,
+                    "completion": response.usage.completion_tokens
+                },
+                "cost": response.usage.estimated_cost
+            }
+
+        except Exception as e:
+            logger.error(f"Model service 生成答案失敗: {e}")
+            raise LLMError(f"AI 生成答案失敗: {e}")
 
     async def ask(self, request: QARequest) -> QAResponse:
         """處理QA請求 - 優化的智能路由接口"""
@@ -102,8 +119,8 @@ class QAService:
 
         try:
             # 檢查服務可用性
-            if not self.llm_provider:
-                raise QAServiceError("LLM提供商未初始化")
+            if not self.model_service:
+                raise QAServiceError("Model service 未初始化")
 
             # 獲取用戶會話
             session = self.session_manager.get_session(request.platform, request.user_id)
@@ -122,8 +139,8 @@ class QAService:
                 context = self._format_context(documents)
                 sources = self._extract_sources_from_docs(documents)
 
-            # 生成答案 - 包含會話記憶
-            llm_response = await self.llm_provider.generate_answer_with_history(
+            # 生成答案 - 使用統一 model_service (自動 fallback)
+            llm_response = await self._generate_answer_with_model_service(
                 request.question, context, session.get_recent_history(3)
             )
 

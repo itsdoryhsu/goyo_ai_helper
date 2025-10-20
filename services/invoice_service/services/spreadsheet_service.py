@@ -4,7 +4,11 @@ import pandas as pd
 import json
 from datetime import datetime
 from google.oauth2.service_account import Credentials
-from ..config.settings import SPREADSHEET_NAME, WORKSHEET_NAME, GOOGLE_APPLICATION_CREDENTIALS
+try:
+    from ..config.settings import SPREADSHEET_NAME, WORKSHEET_NAME, GOOGLE_APPLICATION_CREDENTIALS
+except ImportError:
+    # 當從其他服務導入時，使用絕對導入
+    from services.invoice_service.config.settings import SPREADSHEET_NAME, WORKSHEET_NAME, GOOGLE_APPLICATION_CREDENTIALS
 
 class SpreadsheetService:
     def __init__(self):
