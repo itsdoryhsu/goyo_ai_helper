@@ -136,11 +136,29 @@ class GoogleOCRProvider(OCRProvider):
         )
         
         # 確保 response.text 是有效的 JSON 字符串
+        # Gemini有時會在JSON前後加說明文字，需要提取純JSON部分
+        response_text = response.text.strip()
+
+        # 嘗試直接解析
         try:
-            invoice_data_dict = json.loads(response.text)
+            invoice_data_dict = json.loads(response_text)
             invoice_data = InvoiceData(**invoice_data_dict)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Google Gemini 回傳的不是有效的 JSON: {response.text}. 錯誤: {e}")
+        except json.JSONDecodeError:
+            # 如果直接解析失敗，嘗試提取JSON部分
+            try:
+                # 尋找第一個{和最後一個}之間的內容
+                start_idx = response_text.find('{')
+                end_idx = response_text.rfind('}')
+
+                if start_idx != -1 and end_idx != -1 and start_idx < end_idx:
+                    json_str = response_text[start_idx:end_idx+1]
+                    invoice_data_dict = json.loads(json_str)
+                    invoice_data = InvoiceData(**invoice_data_dict)
+                else:
+                    raise ValueError(f"無法在回應中找到有效的JSON結構")
+
+            except (json.JSONDecodeError, ValueError) as e:
+                raise ValueError(f"Google Gemini 回傳的不是有效的 JSON: {response_text}. 錯誤: {e}")
         
         # Gemini API 的 usage 資訊獲取方式可能不同，這裡先給一個預設值
         usage = {
