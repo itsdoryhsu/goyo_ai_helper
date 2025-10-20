@@ -40,12 +40,12 @@ except ImportError as e:
     MODEL_SERVICE_AVAILABLE = False
 
 class InvoiceData(BaseModel):
-    seller_id: str
-    invoice_number: str
-    invoice_date: str
-    account: int
-    invoice_type: str
-    invoice_description: str
+    seller_id: Optional[str] = "未知統編"  # 允許為空，預設值
+    invoice_number: Optional[str] = "未知發票號"  # 允許為空，預設值
+    invoice_date: Optional[str] = "未知日期"  # 允許為空，預設值
+    account: Optional[int] = 0  # 允許為空，預設值為0
+    invoice_type: Optional[str] = "未知"  # 允許為空，預設值為"未知"
+    invoice_description: Optional[str] = "無品名資訊"  # 允許為空，預設值
     category: Optional[str] = None  # AI 判斷的支出類別
     expense_category: Optional[str] = None # 新增的推斷欄位
 
