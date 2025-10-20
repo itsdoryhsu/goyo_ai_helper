@@ -378,7 +378,7 @@ class QAService:
     def get_service_status(self) -> Dict[str, Any]:
         """獲取服務狀態"""
         return {
-            "llm_provider": self.llm_provider.get_model_info() if self.llm_provider else None,
+            "model_service": "unified_model_service" if self.model_service else None,
             "vectorstore_available": self.vectorstore_provider.is_available() if self.vectorstore_provider else False,
             "vectorstore_stats": self.vectorstore_provider.get_stats() if self.vectorstore_provider else {},
             "active_sessions": len(self.session_manager._sessions),
