@@ -97,14 +97,14 @@ class QAService:
 
             return {
                 "answer": response.content,
-                "model": response.model_name,
-                "provider": response.provider.value,
+                "model": response.model,
+                "provider": response.provider,
                 "tokens": {
-                    "total": response.usage.total_tokens,
-                    "prompt": response.usage.prompt_tokens,
-                    "completion": response.usage.completion_tokens
+                    "total": response.usage.get("total_tokens", 0),
+                    "prompt": response.usage.get("prompt_tokens", 0),
+                    "completion": response.usage.get("completion_tokens", 0)
                 },
-                "cost": response.usage.estimated_cost
+                "cost": response.cost
             }
 
         except Exception as e:
