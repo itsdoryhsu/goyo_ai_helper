@@ -47,6 +47,8 @@ data/vectorstore/
 
 # 配置檔案和敏感資料 (僅根目錄)
 /config/
+# 允許service的config設定檔
+!services/*/config/settings.py
 *.log
 logs/
 temp_*
@@ -74,7 +76,7 @@ aws-*
 *.pem
 *.key
 credentials
-config
+# config (service config files allowed above)
 
 # 部署相關
 *.deployment
